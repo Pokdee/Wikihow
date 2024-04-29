@@ -1,0 +1,43 @@
+{
+  "name": "wikihow",
+  "version": "1.0.0",
+  "description": "",
+  "main": "getText.js",
+  "dependencies": {
+    "asynckit": "^0.4.0",
+    "axios": "^1.6.8",
+    "combined-stream": "^1.0.8",
+    "core-util-is": "^1.0.3",
+    "delayed-stream": "^1.0.0",
+    "follow-redirects": "^1.15.6",
+    "form-data": "^4.0.0",
+    "immediate": "^3.0.6",
+    "inherits": "^2.0.4",
+    "isarray": "^1.0.0",
+    "jszip": "^3.10.1",
+    "lie": "^3.3.0",
+    "mime-db": "^1.52.0",
+    "mime-types": "^2.1.35",
+    "node-fetch": "^2.7.0",
+    "node-superfetch": "^0.2.3",
+    "openai": "^4.32.1",
+    "pako": "^1.0.11",
+    "puppeteer": "^22.6.3",
+    "puppeteer-core": "^22.6.2",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "readable-stream": "^2.3.8",
+    "safe-buffer": "^5.1.2",
+    "youtube-videos-uploader": "^2.0.26"
+  },
+  "devDependencies": {
+    "axios": "^1.6.8",
+    "selenium-webdriver": "^4.19.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
