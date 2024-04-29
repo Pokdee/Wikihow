@@ -1,7 +1,11 @@
 const puppeteer = require("puppeteer-core");
 const fs = require("fs");
 const path = require("path");
+const speech = require("./voiceover.js");
 const { title } = require("process");
+const { isArray } = require("core-util-is");
+
+////
 let url = "https://www.wikihow.com/";
 
 //timer
@@ -12,7 +16,37 @@ const timer = function (t, val) {
 // data
 let data = {};
 
+/*
+let data = {
+  title: "This is main title",
+  intro: "This is intro after main title",
+  steps: [
+    {
+      title: "This is step title 1 ",
+      step: "This is step 1",
+    },
+    {
+      title: "This is step title 2 ",
+      step: "This is step 2",
+    },
+    {
+      title: "This is step title 2 ",
+      step: "This is step 2",
+    },
+  ],
+};
+
+for (const val of Object.values(data)) {
+  if (typeof val === "string") console.log(val);
+  if (isArray(val)) {
+    val.forEach((obj) => {
+      console.log(obj.title, obj.step);
+    });
+  }
+}
+*/
 //
+
 (async () => {
   //detail Selector
   const titleSelector = "#section_0";
@@ -31,19 +65,41 @@ let data = {};
     waitUntil: "load",
   });
 
+  //Check Popular
+
+  //Popular selector
   let popularSelect = "div#hp_popular_container > div.hp_thumb";
 
-  const popular = await page.evaluate(() => {
-    return document
-      .querySelector("div#hp_popular_container > div.hp_thumb > a")
-      .getAttribute("href");
+  //get url popular content
+  const popularUrl = await page.evaluate(() => {
+    let links = Array.from(
+      document.querySelectorAll("div#hp_popular_container > div.hp_thumb > a")
+    );
+    return links.map((link) => link.getAttribute("href"));
   });
 
-  console.log(popular);
-  await page.goto(url + popular);
-
+  await page.goto(url + popularUrl[1]);
   /*
+  //get banner popular content
+  const popularImgSrc = await page.evaluate(() => {
+    const imgs = Array.from(
+      document.querySelectorAll(
+        "div#hp_popular_container > div.hp_thumb > a > div.content-spacer > img"
+      )
+    );
+    return imgs.map((img) => img.src);
+  });
 
+  const mainImgUrl = popularImgSrc[0];
+  const viewSource = await page.goto(mainImgUrl);
+  const buffer = await viewSource.buffer();
+
+  // Save the image
+  
+  fs.writeFileSync(`./image/main.jpg`, buffer);
+  console.log("save");
+
+  */
   //wait for data to load
   await page.waitForSelector(".mf-section-0");
   await page.waitForSelector(".whb");
@@ -60,8 +116,9 @@ let data = {};
 
   data.intro = introText.replace(/[\r\n]+/g, "");
 
-  // get Images
-  
+  //////get Images
+  /*
+
   const imagesUrl = await page.evaluate(() => {
     let images = Array.from(document.querySelectorAll("img.whcdn")); // Change 'img' to the appropriate CSS selector for the image you want to download
     return images.map((img) => img.src);
@@ -69,7 +126,6 @@ let data = {};
 
   //use for loop through all images
 
-  
   for (let i = 0; i < imagesUrl.length; i++) {
     const url = imagesUrl[i];
     const viewSource = await page.goto(url);
@@ -82,8 +138,7 @@ let data = {};
     await timer(2000);
     await page.goBack();
   }
-  
-
+*/
   /////////////
 
   // // get STeps
@@ -103,7 +158,8 @@ let data = {};
       });
     }, element);
 
-    ///get all the steps
+    /////get all the steps
+
     let step = {
       title: childNodes[1].content,
       step: `${childNodes[2].content ? childNodes[2].content : ""} ${
@@ -115,6 +171,13 @@ let data = {};
 
   data.steps = stepsText;
 
-  console.log(data);
-  */
+  ///content organiser
+  for (const val of Object.values(data)) {
+    if (typeof val === "string") console.log(val);
+    if (isArray(val)) {
+      val.forEach((obj) => {
+        console.log(obj.title, obj.step);
+      });
+    }
+  }
 })();
