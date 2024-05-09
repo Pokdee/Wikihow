@@ -3,7 +3,9 @@ const fs = require("fs");
 const path = require("path");
 const speech = require("./voiceover.js");
 const { isArray } = require("core-util-is");
-const merger = require("./ffmpeg.js");
+
+const audioMerger = require("./audioMerge.js");
+const videoMerger = require("./videoMerge.js");
 
 ////
 let url = "https://www.wikihow.com/";
@@ -16,7 +18,6 @@ let data = {};
 data.main = {};
 
 //
-
 (async () => {
   //detail Selector
 
@@ -40,30 +41,30 @@ data.main = {};
 
   //Popular selector
   let popularSelect = "div#hp_popular_container > div.hp_thumb";
+  /*
 
   //get banner popular content //////////////////////////////////////////
 
-  /*
-  const popularImgSrc = await page.evaluate(() => {
-    const imgs = Array.from(
-      document.querySelectorAll(
-        "div#hp_popular_container > div.hp_thumb > a > div.content-spacer > img"
-      )
-    );
-    return imgs.map((img) => img.src);
-  });
+  // const popularImgSrc = await page.evaluate(() => {
+  //   const imgs = Array.from(
+  //     document.querySelectorAll(
+  //       "div#hp_popular_container > div.hp_thumb > a > div.content-spacer > img"
+  //     )
+  //   );
+  //   return imgs.map((img) => img.src);
+  // });
 
-  const mainImgUrl = popularImgSrc[1];
-  const viewSource = await page.goto(mainImgUrl);
-  const buffer = await viewSource.buffer();
+  // const mainImgUrl = popularImgSrc[1];
+  // const viewSource = await page.goto(mainImgUrl);
+  // const buffer = await viewSource.buffer();
 
-  // Save the image
+  // // Save the image
 
-  fs.writeFileSync(`./image/image0.jpg`, buffer);
-  console.log("save banner");
+  // fs.writeFileSync(`./image/image0.jpg`, buffer);
+  // console.log("save banner");
 
-  await page.goBack();
-*/
+  // await page.goBack();
+ */
   //get url popular content
 
   const popularUrl = await page.evaluate(() => {
@@ -75,14 +76,18 @@ data.main = {};
 
   const trending = await page.$$("div#hp_popular_container > div.hp_thumb > a");
 
-  await trending[1].click();
+  await trending[0].click();
+
+  console.log("got to first page");
 
   //wait for data to load ///////////////////////////////////////////
   await page.waitForSelector(".mf-section-0");
+
   await page.waitForSelector(".whb");
   await page.waitForSelector(".step");
 
   console.log("wait done");
+  /*
   ////get Title ////////////////////////////////
   let title = await page.$(titleSelector);
   const titleText = await title.evaluate((el) => el.textContent.trim());
@@ -102,30 +107,36 @@ data.main = {};
   let speechFile = path.resolve(`./audio/speech${0}.mp3`);
   await speech(data.main.title + data.main.intro, speechFile);
   await timer(60000);
+
   console.log("intro done");
 
+ 
   //////get Images /////////////////////////////////////////
-  /*
+  await page.waitForSelector("img.whcdn");
+
   const imagesUrl = await page.evaluate(() => {
     let images = Array.from(document.querySelectorAll("img.whcdn")); // Change 'img' to the appropriate CSS selector for the image you want to download
     return images.map((img) => img.src);
   });
+
+  console.log(imagesUrl);
 
   //use for loop through all images
 
   for (let i = 0; i < imagesUrl.length; i++) {
     const url = imagesUrl[i];
     const viewSource = await page.goto(url);
+    await timer(3000);
     const buffer = await viewSource.buffer();
 
     // Save the image
-    fs.writeFileSync(`./image/image${i+1}.jpg`, buffer);
+    fs.writeFileSync(`./image/image${i + 1}.jpg`, buffer);
     //wait some time for page to load
-    await timer(2000);
+    console.log("image", i, "saved");
     await page.goBack();
   }
   console.log("saved all image");
- */
+
   /////////////
 
   // // get STeps ///////////////////////////////////////////
@@ -159,39 +170,43 @@ data.main = {};
     console.log("step", i + 1, "done");
   }
 
-  // data.steps = stepsText;
-
   console.log("got steps");
 
-  ///content organiser and voiceover ///////////////////////////////
-  // let speechFile = path.resolve(`./audio/speech${0}.mp3`);
-  // const dataArray = Object.values(data);
-  // for (let i = 0; i < dataArray.length; i++) {
-  //   let val = dataArray[i];
-
-  //   if (!isArray(val)) {
-  //     // speech(val.title + val.intro, speechFile);
-  //     console.log(val);
-  //     await timer(30000);
-  //     console.log(1, "in");
-  //   }
-
-  //   if (isArray(val)) {
-  //     val.forEach(async (step, i) => {
-  //       let title = step.title;
-  //       let context = step.step;
-  //       console.log("title", title);
-  //       console.log("step", context);
-  //       await timer(30000);
-  //       console.log(i + 2, "in");
-  //       // speechFile = path.resolve(`./audio/speech${i + 1}.mp3`);
-  //       // speech(title + context, speechFile);
-  //     });
-  //   }
-  // }
-
   ////merge audio and video one by one
+  const dataCount = (await page.$$(".step")).length;
+
+  for (let i = 0; i < dataCount + 1; i++) {
+    console.log("starting another");
+    //set data path
+    let imagePath = `./image/image${i}.jpg`;
+    let audioPath = `./audio/speech${i}.mp3`;
+    let outputPath = `./video/video${i}.mp4`;
+    
+    audioMerger(imagePath, audioPath, outputPath);
+    await timer(5000);
+  }
+  */
 
   ///merge all to make one video
+  // Example usage
+  const dataCount = (await page.$$(".step")).length;
+
+  let videoPaths = [];
+  const outputFilePath = "./content/main.mp4";
+  let i = 0;
+
+  while (i < dataCount + 1) {
+    videoPaths.push(`video/video${i}.mp4`);
+    i++;
+  }
+
+  videoMerger(videoPaths, outputFilePath)
+    .then(() => {
+      console.log("Video merge complete");
+    })
+    .catch((err) => {
+      console.error("Error merging videos:", err);
+    });
+
   console.log("All done");
 })();
