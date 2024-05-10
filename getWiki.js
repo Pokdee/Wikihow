@@ -18,6 +18,7 @@ let data = {};
 data.main = {};
 
 //
+
 (async () => {
   //detail Selector
 
@@ -64,7 +65,7 @@ data.main = {};
   // console.log("save banner");
 
   // await page.goBack();
- */
+  */
   //get url popular content
 
   const popularUrl = await page.evaluate(() => {
@@ -87,6 +88,7 @@ data.main = {};
   await page.waitForSelector(".step");
 
   console.log("wait done");
+
   /*
   ////get Title ////////////////////////////////
   let title = await page.$(titleSelector);
@@ -110,7 +112,6 @@ data.main = {};
 
   console.log("intro done");
 
- 
   //////get Images /////////////////////////////////////////
   await page.waitForSelector("img.whcdn");
 
@@ -119,7 +120,6 @@ data.main = {};
     return images.map((img) => img.src);
   });
 
-  console.log(imagesUrl);
 
   //use for loop through all images
 
@@ -139,6 +139,7 @@ data.main = {};
 
   /////////////
 
+  */
   // // get STeps ///////////////////////////////////////////
 
   const elementArray = await page.$$(".step");
@@ -150,28 +151,52 @@ data.main = {};
     // Execute JavaScript within the page context to get child nodes
     const childNodes = await page.evaluate((element) => {
       return Array.from(element.childNodes).map((node) => {
+        // if (node.nodeType === Node.TEXT_NODE) {
         return {
           content: node.textContent,
         };
+        // }
       });
     }, element);
 
+    // console.log(childNodes);
     /////get all the steps
 
-    let step = {
-      title: childNodes[1].content,
-      step: childNodes[2].content ? childNodes[2].content : "",
-    };
+    ///
+    let context = "";
+    const pattern = /\[\d+\]\n\tX\n\t\tExpert/;
+    childNodes.forEach((n) => {
+      let content = n.content;
+      let contentArray = content.split(" ");
+      if (
+        !contentArray.some((c) => pattern.test(c)) &&
+        contentArray.length >= 4
+      ) {
+        context = context + content;
+      }
+    });
+    console.log(context);
+    console.log("text", i);
+
+    ///
+    // let step = {
+    //   title: childNodes[1].content,
+    //   step: childNodes[2].content ? childNodes[2].content : "",
+    // };
+    // console.log(step);
     // stepsText.push(step);
 
-    let speechFile = path.resolve(`./audio/speech${i + 1}.mp3`);
-    await speech(step.title + step.step, speechFile);
-    await timer(60000);
-    console.log("step", i + 1, "done");
+    //voice over
+
+    // let speechFile = path.resolve(`./audio/speech${i + 1}.mp3`);
+    // await speech(step.title + step.step, speechFile);
+    // await timer(60000);
+    // console.log("step", i + 1, "done");
   }
 
   console.log("got steps");
 
+  /*
   ////merge audio and video one by one
   const dataCount = (await page.$$(".step")).length;
 
@@ -185,28 +210,28 @@ data.main = {};
     audioMerger(imagePath, audioPath, outputPath);
     await timer(5000);
   }
-  */
-
+  
   ///merge all to make one video
   // Example usage
-  const dataCount = (await page.$$(".step")).length;
-
+  
   let videoPaths = [];
   const outputFilePath = "./content/main.mp4";
   let i = 0;
-
+  
   while (i < dataCount + 1) {
     videoPaths.push(`video/video${i}.mp4`);
     i++;
   }
-
+  
   videoMerger(videoPaths, outputFilePath)
-    .then(() => {
-      console.log("Video merge complete");
-    })
-    .catch((err) => {
-      console.error("Error merging videos:", err);
-    });
+  .then(() => {
+    console.log("Video merge complete");
+  })
+  .catch((err) => {
+    console.error("Error merging videos:", err);
+  });
+  
 
+  */
   console.log("All done");
 })();
